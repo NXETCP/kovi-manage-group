@@ -1,10 +1,16 @@
 [package]
-name = "kovi-manage-group"
-version = "0.1.0"
-edition = "2024"
-keywords = ["kovi", "kovi-plugin", "kovi-manage-group"]
-description = "kovi 的群管插件"
-authors = ["NXETCP <2570266883@qq.com>"]
+name = "kovi-manage-group" # 项目名称
+version = "0.1.0" # 当前版本号
+edition = "2024" # Rust Edition
+keywords = ["kovi", "kovi-plugin", "kovi-manage-group"] # 关键词，方便搜索
+description = "kovi 的群管插件" # 简要描述
+authors = ["NXETCP <2570266883@qq.com>"] # 作者信息
+license = "MIT" # 添加许可证信息，推荐 MIT 或 Apache-2.0
+repository = "https://github.com/NXETCP/kovi-manage-group" # 仓库地址
+homepage = "https://github.com/NXETCP/kovi-manage-group" # 项目主页
+documentation = "https://github.com/NXETCP/kovi-manage-group/wiki" # 文档地址（可选）
 
 [dependencies]
-kovi = ">=0.8.0"
+kovi = ">=0.8.0" # Kovi 插件框架的版本依赖
+regex = "1.7" # 用于解析命令的正则依赖
+tokio = { version = "1", features = ["full"] } # 异步运行时，用于异步操作
