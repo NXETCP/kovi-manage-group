@@ -23,7 +23,7 @@ async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
         Some(caps) => caps,
         None => {
             if let Some(group_id) = e.group_id {
-                let _ = bot.send_group_msg(group_id, "命令格式错误！正确格式为：/nxetcp -ban [QQ号] [禁言时间(秒)]");
+                bot.send_group_msg(group_id, "命令格式错误！正确格式为：/nxetcp -ban [QQ号] [禁言时间(秒)]");
             }
             return;
         }
@@ -40,13 +40,12 @@ async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
         }
     };
 
-    match bot.set_group_ban(group_id, qq_id, ban_duration) {
-        Ok(_) => {
-            let _ = bot.send_group_msg(group_id, format!("已成功禁言用户 {}，时长 {} 秒。", qq_id, ban_duration));
-        }
-        Err(err) => {
-            eprintln!("禁言操作失败：{}", err);
-            let _ = bot.send_group_msg(group_id, "禁言操作失败，请稍后重试或检查命令格式！");
-        }
-    }
+    // 调用禁言方法
+    bot.set_group_ban(group_id, qq_id, ban_duration);
+
+    // 发送成功消息
+    bot.send_group_msg(
+        group_id,
+        format!("已成功禁言用户 {}，时长 {} 秒。", qq_id, ban_duration),
+    );
 }
