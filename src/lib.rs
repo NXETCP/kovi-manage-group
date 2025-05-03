@@ -1,16 +1,23 @@
 use kovi::{MsgEvent, PluginBuilder as P, RuntimeBot};
 use std::sync::{Arc, Mutex};
 use regex::Regex;
-use std::io::{self, Write};
+use std::io::{self}; // 移除未使用的 Write
 lazy_static::lazy_static! {
     static ref OWNER: Arc<Mutex<Option<i64>>> = Arc::new(Mutex::new(None));
 }
 
 #[kovi::plugin]
-async fn main() {
+fn main() {
     let bot = P::get_runtime_bot();
     initialize_owner();
-    P::on_group_msg(move |e| on_group_msg(e, bot.clone()));
+
+    // 使用异步闭包修复 `()` is not a future 的问题
+    P::on_group_msg(move |e| {
+        let bot_clone = bot.clone();
+        Box::pin(async move {
+            on_group_msg(e, bot_clone);
+        })
+    });
 }
 
 fn initialize_owner() {
