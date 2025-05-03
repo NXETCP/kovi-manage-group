@@ -18,15 +18,14 @@ async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
         return;
     }
 
-    // 解析命令类型
     if let Some(captures) = Regex::new(r"^/nxetcp\s+-ban\s+(\d+)\s+(\d+)$").unwrap().captures(text) {
-        handle_ban_command(e, bot, captures);
+        handle_ban_command(e.clone(), bot.clone(), captures);
     } else if let Some(captures) = Regex::new(r"^/nxetcp\s+-wholeban\s+(on|off)$").unwrap().captures(text) {
-        handle_whole_ban_command(e, bot, captures);
+        handle_whole_ban_command(e.clone(), bot.clone(), captures);
     } else if let Some(captures) = Regex::new(r"^/nxetcp\s+-title\s+(\d+)\s+(.+)$").unwrap().captures(text) {
-        handle_special_title_command(e, bot, captures);
+        handle_special_title_command(e.clone(), bot.clone(), captures);
     } else if let Some(captures) = Regex::new(r"^/nxetcp\s+-admin\s+(\d+)\s+(on|off)$").unwrap().captures(text) {
-        handle_admin_command(e, bot, captures);
+        handle_admin_command(e.clone(), bot.clone(), captures);
     } else if let Some(group_id) = e.group_id {
         bot.send_group_msg(group_id, "命令格式错误！\n支持的命令有：\n/nxetcp -ban [QQ号] [禁言时间(秒)]\n/nxetcp -wholeban [on/off]\n/nxetcp -title [QQ号] [专属头衔]\n/nxetcp -admin [QQ号] [on/off]");
     }
@@ -45,10 +44,7 @@ fn handle_ban_command(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, captures: regex::C
         }
     };
 
-    // 调用禁言方法
     bot.set_group_ban(group_id, qq_id, ban_duration);
-
-    // 发送成功消息
     bot.send_group_msg(
         group_id,
         format!("已成功禁言用户 {}，时长 {} 秒。", qq_id, ban_duration),
@@ -66,11 +62,7 @@ fn handle_whole_ban_command(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, captures: re
     };
 
     let enable_ban = captures.get(1).unwrap().as_str() == "on";
-
-    // 调用全体禁言方法
     bot.set_group_whole_ban(group_id, enable_ban);
-
-    // 发送成功消息
     bot.send_group_msg(
         group_id,
         if enable_ban {
@@ -94,10 +86,7 @@ fn handle_special_title_command(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, captures
         }
     };
 
-    // 调用设置专属头衔方法
-    bot.set_group_special_title(group_id, qq_id, title.to_string());
-
-    // 发送成功消息
+    bot.set_group_special_title(group_id, qq_id, title);
     bot.send_group_msg(
         group_id,
         format!("已为用户 {} 设置专属头衔：{}", qq_id, title),
@@ -117,10 +106,7 @@ fn handle_admin_command(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, captures: regex:
         }
     };
 
-    // 调用设置管理员方法
     bot.set_group_admin(group_id, qq_id, make_admin);
-
-    // 发送成功消息
     bot.send_group_msg(
         group_id,
         if make_admin {
