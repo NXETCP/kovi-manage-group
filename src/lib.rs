@@ -4,80 +4,65 @@ use std::sync::Arc;
 #[kovi::plugin]
 async fn main() {
     let bot = P::get_runtime_bot();
-    P::on_group_msg(move |e| on_group_msg(e, bot.clone()));
+    P::on_group_msg(move |e| async move {
+        if let Err(e) = on_group_msg(e, bot.clone()).await {
+            eprintln!("Command handling error: {:?}", e);
+        }
+    });
 }
 
-fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
-    // Get the group ID from the event
-    let group_id = match e.group_id {
-        Some(id) => id,
-        None => return, // Not a group message
-    };
+async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) -> Result<(), Box<dyn std::error::Error>> {
+    // 显式获取群组ID
+    let group_id = e.group_id.ok_or("Not a group message")?;
 
-    let text = match e.borrow_text() {
-        Some(v) => v,
-        None => return,
-    };
+    // 获取消息文本
+    let text = e.borrow_text().ok_or("No message text")?;
 
-    // Only handle messages starting with /np
+    // 检查命令前缀
     if !text.starts_with("/np") {
-        return;
+        return Ok(());
     }
 
-    // Split the command into parts
-    let args: Vec<&str> = text.split_whitespace().collect();
-    if args.len() < 2 {
-        // Show main menu if no arguments provided
-        bot.send_group_msg(group_id, MENU);
-        return;
+    // 解析参数
+    let args: Vec<&str> = text.trim_start_matches('/').trim().split_whitespace().collect();
+    if args.is_empty() {
+        bot.send_group_msg(group_id, MENU).await?;
+        return Ok(());
     }
 
-    // Handle different commands
-    match args[1].to_lowercase().as_str() {
-        "menu" => {
-            bot.send_group_msg(group_id, MENU);
-        }
-        "images" => {
-            if args.len() < 3 {
-                bot.send_group_msg(group_id, IMAGES);
-                return;
-            }
-            match args[2].to_lowercase().as_str() {
-                "-cats" => {
-                    bot.send_group_msg(group_id, "Here are some cute cats! 🐱");
-                }
-                "-coser" => {
-                    bot.send_group_msg(group_id, "Here are some coser images!");
-                }
-                "-search" => {
-                    if args.len() < 4 {
-                        bot.send_group_msg(
-                            group_id,
-                            "Usage: /np images -search [key]",
-                        );
-                        return;
-                    }
-                    let search_key = &args[3..].join(" ");
-                    bot.send_group_msg(
-                        group_id,
-                        format!("Searching for images with key: {}", search_key),
-                    );
-                }
-                _ => {
-                    bot.send_group_msg(group_id, IMAGES);
-                }
-            }
-        }
-        "others" => {
-            bot.send_group_msg(group_id, "OTHERS\n--\n -feature1\n -feature2");
-        }
-        _ => {
-            bot.send_group_msg(group_id, "Unknown command. Type /np menu for help.");
-        }
+    // 命令处理
+    match args[0].to_lowercase().as_str() {
+        "menu" => bot.send_group_msg(group_id, MENU).await?,
+        "images" => handle_images(&args, group_id, bot).await?,
+        "others" => bot.send_group_msg(group_id, OTHERS).await?,
+        _ => bot.send_group_msg(group_id, "Unknown command. Use /np menu").await?,
     }
+
+    Ok(())
 }
 
-// 菜单列表
-static MENU: &str = "MENU\n--\n -menu\n -images\n -others";
-// 图片菜单
-static IMAGES: &str = "IMAGES\n--\n -cats\n -coser\n\n -search [key]";
+async fn handle_images(args: &[&str], group_id: i64, bot: Arc<RuntimeBot>) -> Result<(), Box<dyn std::error::Error>> {
+    match args.get(0).map(|s| s.to_lowercase().as_str()) {
+        Some("-cats") => bot.send_group_msg(group_id, "Cute cats coming soon... 🐱").await?,
+        Some("-coser") => bot.send_group_msg(group_id, "Coser images loading...").await?,
+        Some("-search") => {
+            let query = args.get(1..).map(|v| v.join(" ")).unwrap_or_default();
+            bot.send_group_msg(group_id, format!("Searching for: {}", query)).await?;
+        }
+        _ => bot.send_group_msg(group_id, IMAGES).await?,
+    }
+    Ok(())
+}
+
+// 菜单常量
+const MENU: &str = "MENU
+-- 
+ - menu
+ - images
+ - others";
+
+const IMAGES: &str = "IMAGES
+-- 
+ - cats
+ - coser
+ - search [key]";
