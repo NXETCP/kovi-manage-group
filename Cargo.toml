@@ -1,0 +1,10 @@
+[package]
+name = "kovi-manage-group"
+version = "0.1.0"
+edition = "2024"
+keywords = ["kovi", "kovi-plugin", "kovi-manage-group"]
+description = "kovi 的群管插件"
+authors = ["NXETCP <2570266883@qq.com>"]
+
+[dependencies]
+kovi = ">=0.8.0"
