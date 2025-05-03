@@ -1,22 +1,23 @@
 use kovi::{MsgEvent, PluginBuilder as P, RuntimeBot};
 use std::sync::{Arc, Mutex};
 use regex::Regex;
-use std::io::{self}; // 移除未使用的 Write
+use std::io::{self};
+
 lazy_static::lazy_static! {
     static ref OWNER: Arc<Mutex<Option<i64>>> = Arc::new(Mutex::new(None));
 }
 
 #[kovi::plugin]
-fn main() {
+async fn main() {
     let bot = P::get_runtime_bot();
     initialize_owner();
 
     // 使用异步闭包修复 `()` is not a future 的问题
     P::on_group_msg(move |e| {
         let bot_clone = bot.clone();
-        Box::pin(async move {
+        async move {
             on_group_msg(e, bot_clone);
-        })
+        }
     });
 }
 
@@ -47,7 +48,10 @@ fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
     } else if let Some(captures) = Regex::new(r"^/nxetcp\s+-ban\s+(\d+)\s+(\d+)$").unwrap().captures(text) {
         handle_ban_command(e.clone(), bot.clone(), captures);
     } else if let Some(group_id) = e.group_id {
-        bot.send_group_msg(group_id, "命令格式错误！支持的命令有：\n/nxetcp -setowner [QQ号]\n/nxetcp -ban [QQ号] [禁言时间(秒)]\n/nxetcp -wholeban [on/off]");
+        bot.send_group_msg(
+            group_id,
+            "命令格式错误！支持的命令有：\n/nxetcp -setowner [QQ号]\n/nxetcp -ban [QQ号] [禁言时间(秒)]\n/nxetcp -wholeban [on/off]"
+        );
     }
 }
 
