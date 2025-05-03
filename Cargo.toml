@@ -14,3 +14,4 @@ documentation = "https://github.com/NXETCP/kovi-manage-group/wiki" # 文档地�
 kovi = ">=0.8.0" # Kovi 插件框架的版本依赖
 regex = "1.7" # 用于解析命令的正则依赖
 tokio = { version = "1", features = ["full"] } # 异步运行时，用于异步操作
+lazy_static = "1.4"
