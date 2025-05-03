@@ -4,10 +4,8 @@ use regex::Regex;
 use std::io::{self};
 use std::fs;
 use serde::{Serialize, Deserialize};
-use std::path::Path;
 
-// 配置结构体，用于序列化和反序列化
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)] // 添加 Clone trait
 struct Config {
     owner: Option<i64>,
 }
@@ -30,7 +28,6 @@ async fn main() {
     });
 }
 
-// 初始化主人，优先从文件加载配置，若没有则提示输入
 async fn initialize_owner(config_path: std::path::PathBuf) -> Config {
     if let Ok(config_str) = fs::read_to_string(&config_path) {
         // 如果文件存在且可读取，尝试反序列化
@@ -54,13 +51,11 @@ async fn initialize_owner(config_path: std::path::PathBuf) -> Config {
     new_config
 }
 
-// 将配置保存到文件
 async fn save_config(path: std::path::PathBuf, config: &Config) {
     let config_str = serde_json::to_string(config).unwrap();
     fs::write(path, config_str).unwrap();
 }
 
-// 处理群消息
 async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, config: Config, config_path: std::path::PathBuf) {
     let text = match e.borrow_text() {
         Some(v) => v,
@@ -83,7 +78,6 @@ async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, config: Config, co
     }
 }
 
-// 检查消息发送者是否为主人
 fn is_owner(config: &Config, user_id: i64) -> bool {
     if let Some(owner_id) = config.owner {
         return owner_id == user_id;
@@ -91,7 +85,6 @@ fn is_owner(config: &Config, user_id: i64) -> bool {
     false
 }
 
-// 设置新主人
 async fn handle_set_owner_command(
     e: Arc<MsgEvent>, 
     bot: Arc<RuntimeBot>, 
@@ -114,31 +107,11 @@ async fn handle_set_owner_command(
     }
 
     let new_owner: i64 = captures.get(1).unwrap().as_str().parse().unwrap();
-    let mut new_config = config.clone();
-    new_config.owner = Some(new_owner);
+    let mut new_config = config.clone(); // 克隆 config
+    new_config.owner = Some(new_owner);  // 修改 owner
 
     // 保存新的主人到配置文件
     save_config(config_path, &new_config).await;
 
     bot.send_group_msg(group_id, format!("新的主人已设置为：{}", new_owner));
-}
-
-// 禁言命令处理
-async fn handle_ban_command(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>, captures: regex::Captures<'_>) {
-    let qq_id: i64 = captures.get(1).unwrap().as_str().parse().unwrap();
-    let ban_duration: usize = captures.get(2).unwrap().as_str().parse().unwrap();
-
-    let group_id = e.group_id.unwrap();
-    let user_id = e.user_id;
-
-    if !is_owner(&Config { owner: Some(user_id) }, user_id) {
-        bot.send_group_msg(group_id, "只有主人可以执行禁言操作！");
-        return;
-    }
-
-    bot.set_group_ban(group_id, qq_id, ban_duration);
-    bot.send_group_msg(
-        group_id,
-        format!("已成功禁言用户 {}，时长 {} 秒。", qq_id, ban_duration),
-    );
 }
