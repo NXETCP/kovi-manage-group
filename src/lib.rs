@@ -1,6 +1,6 @@
 use kovi::{MsgEvent, PluginBuilder as P, RuntimeBot};
 use std::sync::Arc;
-use regex::Regex;
+//use regex::Regex;
 
 #[kovi::plugin]
 async fn main() {
@@ -8,7 +8,7 @@ async fn main() {
     P::on_group_msg(move |e| on_group_msg(e, bot.clone()));
 }
 
-fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
+async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
     let text = match e.borrow_text() {
         Some(v) => v,
         None => return,
