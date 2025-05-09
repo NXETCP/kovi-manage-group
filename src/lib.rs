@@ -10,7 +10,7 @@ async fn main() {
 
 async fn on_group_msg(e: Arc<NoticeEvent>, bot: Arc<RuntimeBot>) {
     
-    if e.notice_type {
+    if e.notice_type == "group_decrease" {
         //bot.send_group_msg(group_id, );
         println!("{}", e.original_json);
     }
