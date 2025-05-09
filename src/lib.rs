@@ -10,8 +10,9 @@ async fn main() {
 
 async fn on_group_msg(e: Arc<NoticeEvent>, bot: Arc<RuntimeBot>) {
     
-    if let Some(group_id) = e.group_id {
-        bot.send_group_msg(group_id, e.notice_type);
+    if let Some(notice_type) = e.notice_type {
+        //bot.send_group_msg(group_id, );
+        println!("{}", e.original_msg);
     }
     /*let text = match e.borrow_text() {
         Some(v) => v,
