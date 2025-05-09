@@ -1,4 +1,4 @@
-use kovi::{MsgEvent, PluginBuilder as P, RuntimeBot};
+use kovi::{NoticeEvent, PluginBuilder as P, RuntimeBot};
 use std::sync::Arc;
 //use regex::Regex;
 
@@ -8,8 +8,12 @@ async fn main() {
     P::on_group_msg(move |e| on_group_msg(e, bot.clone()));
 }
 
-async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
-    let text = match e.borrow_text() {
+async fn on_group_msg(e: Arc<NoticeEvent>, bot: Arc<RuntimeBot>) {
+    
+    if let Some(group_id) = e.group_id {
+        bot.send_group_msg(group_id, e.notice_type);
+    }
+    /*let text = match e.borrow_text() {
         Some(v) => v,
         None => return,
     };
@@ -25,7 +29,7 @@ async fn on_group_msg(e: Arc<MsgEvent>, bot: Arc<RuntimeBot>) {
             "/np manage" => bot.send_group_msg(group_id, MANAGE),
             _ => {}
         }
-    }
+    }*/
 }
 
 static MENU: &str = "MENU\n--\n -manage\n -images\n -others";
