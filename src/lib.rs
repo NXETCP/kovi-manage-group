@@ -5,7 +5,7 @@ use std::sync::Arc;
 #[kovi::plugin]
 async fn main() {
     let bot = P::get_runtime_bot();
-    P::on_group_msg(move |e| on_group_msg(e, bot.clone()));
+    P::on_all_notice(move |e| on_group_msg(e, bot.clone()));
 }
 
 async fn on_group_msg(e: Arc<NoticeEvent>, bot: Arc<RuntimeBot>) {
@@ -31,7 +31,7 @@ async fn on_group_msg(e: Arc<NoticeEvent>, bot: Arc<RuntimeBot>) {
         }
     }*/
 }
-
+/*
 static MENU: &str = "MENU\n--\n -manage\n -images\n -others";
 static IMAGES: &str = "IMAGES\n--\n -cats\n -coser\n\n -search [key]";
-static MANAGE: &str = "MANAGE\n--\n -ban [uin] [time]\n -all_ban [off/on]";
+static MANAGE: &str = "MANAGE\n--\n -ban [uin] [time]\n -all_ban [off/on]";*/
